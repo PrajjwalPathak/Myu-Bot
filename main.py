@@ -1,11 +1,13 @@
+import os
 import discord
-from keys import *
 import random as rand
 import youtube_dl
 from discord.ext import commands
 
 intents = discord.Intents.default()
 intents.members = True
+
+TOKEN = os.getenv("DISCORD_TOKEN")
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
@@ -17,7 +19,7 @@ async def on_ready():
 
 @bot.command()
 async def hello(ctx):
-    await ctx.send("Hello, I am a Test Bot.")
+    await ctx.send("Hello, I am Myu-Bot.")
 
 
 def general_channel():
@@ -93,6 +95,5 @@ async def stop(ctx):
     voice = ctx.voice_client
     voice.stop()
     await ctx.send("Stopped")
-
 
 bot.run(TOKEN)

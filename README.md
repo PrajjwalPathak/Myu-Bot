@@ -1,2 +1,2 @@
-# Myu-Bot
-A Music Player Discord Bot
+# Myu-Bot-Online
+A Music Player Discord Bot - Deployed

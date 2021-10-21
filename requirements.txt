@@ -1,0 +1,5 @@
+discord
+pyNaCl
+youtube_dl
+ffmpeg
+ffprobe
