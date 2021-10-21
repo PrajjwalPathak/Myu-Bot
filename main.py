@@ -19,7 +19,7 @@ async def on_ready():
 
 @bot.command()
 async def hello(ctx):
-    await ctx.send("Hello, I am Myu-Bot.")
+    await ctx.send("Hello, I am a Music Player Bot. You can call me Myu.")
 
 
 def general_channel():
