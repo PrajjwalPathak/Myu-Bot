@@ -7,7 +7,6 @@ from discord.ext import commands
 
 intents = discord.Intents.default()
 intents.members = True
-
 TOKEN = os.getenv("DISCORD_TOKEN")
 bot = commands.Bot(command_prefix='!', intents=intents)
 youtube = build('youtube', 'v3', developerKey=API_KEY)
@@ -63,31 +62,62 @@ async def leave(ctx):
         await ctx.send("I am not connected to a voice channel.")
 
 
-@bot.command()
-async def play_link(ctx, url):
-    voice = ctx.voice_client
-    voice.stop()
+def play_song(url):
     ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
     ydl_options = {'format': 'bestaudio/best'}
 
     with youtube_dl.YoutubeDL(ydl_options) as ydl:
         info = ydl.extract_info(url, download=False)
-        urlplay = info['formats'][0]['url']
-        source = await discord.FFmpegOpusAudio.from_probe(urlplay, **ffmpeg_options)
-        voice.play(source)
+        url_play = info['formats'][0]['url']
+        source = discord.FFmpegOpusAudio.from_probe(url_play, **ffmpeg_options)
+    return source
+
+
+def search_song_id(keyword):
+    request = youtube.search().list(q=keyword, part='snippet', type='video')
+    res = request.execute()
+    ids = []
+    for item in res['items']:
+        ids.append(item['id']['videoId'])
+    return ids
+
+
+def search_song_title(keyword):
+    request = youtube.search().list(q=keyword, part='snippet', type='video')
+    res = request.execute()
+    titles = []
+    for item in res['items']:
+        titles.append(item['snippet']['title'])
+    return titles
 
 
 @bot.command()
-async def search(ctx, keyword):
-    request = youtube.search().list(q=keyword, part='snippet', type='video')
-    res = request.execute()
-    i = 1
-    for item in res['items']:
-        await ctx.send(str(i) + ". " + item['snippet']['title'])
-        i += 1
-    await ctx.send("Enter !play followed by the song number.")
+async def play_link(ctx, url):
+    voice = ctx.voice_client
+    voice.stop()
+    source = await play_song(url)
+    voice.play(source)
 
-    """url = "https://www.youtube.com/watch?v=" + str(id)"""
+
+@bot.command()
+async def search(ctx, *, keyword):
+    titles = search_song_title(keyword)
+    i = 1
+    for title in titles:
+        await ctx.send(str(i) + ". " + title)
+        i += 1
+
+    @bot.command()
+    async def play(ct, song_id):
+        ids = search_song_id(keyword)
+        id_play = ids[int(song_id)]
+        song_id = int(song_id) - 1
+        url = "https://www.youtube.com/watch?v=" + str(id_play)
+        await ct.send("Playing: " + str(titles[int(song_id)]))
+        voice = ctx.voice_client
+        voice.stop()
+        source = await play_song(url)
+        voice.play(source)
 
 
 @bot.command()
