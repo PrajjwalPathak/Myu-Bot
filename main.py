@@ -2,14 +2,15 @@ import os
 import discord
 import random as rand
 import youtube_dl
+from googleapiclient.discovery import build
 from discord.ext import commands
 
 intents = discord.Intents.default()
 intents.members = True
 
 TOKEN = os.getenv("DISCORD_TOKEN")
-
 bot = commands.Bot(command_prefix='!', intents=intents)
+youtube = build('youtube', 'v3', developerKey=API_KEY)
 
 
 @bot.event
@@ -63,17 +64,30 @@ async def leave(ctx):
 
 
 @bot.command()
-async def play(ctx, url):
+async def play_link(ctx, url):
     voice = ctx.voice_client
     voice.stop()
-    FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
-    YDL_OPTIONS = {'format': 'bestaudio/best'}
+    ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+    ydl_options = {'format': 'bestaudio/best'}
 
-    with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl:
+    with youtube_dl.YoutubeDL(ydl_options) as ydl:
         info = ydl.extract_info(url, download=False)
         urlplay = info['formats'][0]['url']
-        source = await discord.FFmpegOpusAudio.from_probe(urlplay, **FFMPEG_OPTIONS)
+        source = await discord.FFmpegOpusAudio.from_probe(urlplay, **ffmpeg_options)
         voice.play(source)
+
+
+@bot.command()
+async def search(ctx, keyword):
+    request = youtube.search().list(q=keyword, part='snippet', type='video')
+    res = request.execute()
+    i = 1
+    for item in res['items']:
+        await ctx.send(str(i) + ". " + item['snippet']['title'])
+        i += 1
+    await ctx.send("Enter !play followed by the song number.")
+
+    """url = "https://www.youtube.com/watch?v=" + str(id)"""
 
 
 @bot.command()
@@ -95,5 +109,6 @@ async def stop(ctx):
     voice = ctx.voice_client
     voice.stop()
     await ctx.send("Stopped")
+
 
 bot.run(TOKEN)
