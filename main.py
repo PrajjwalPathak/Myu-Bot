@@ -1,4 +1,3 @@
-import os
 import discord
 import random as rand
 import youtube_dl
@@ -93,6 +92,9 @@ def search_song_title(keyword):
 
 @bot.command()
 async def play_link(ctx, url):
+    if ctx.author.voice:
+        channel = ctx.message.author.voice.channel
+        await channel.connect()
     voice = ctx.voice_client
     voice.stop()
     source = await play_song(url)
@@ -109,6 +111,9 @@ async def search(ctx, *, keyword):
 
     @bot.command()
     async def play(ct, song_id):
+        if ctx.author.voice:
+            channel = ctx.message.author.voice.channel
+            await channel.connect()
         ids = search_song_id(keyword)
         id_play = ids[int(song_id)]
         song_id = int(song_id) - 1
