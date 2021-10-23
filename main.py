@@ -1,12 +1,14 @@
+import os
 import discord
 import random as rand
 import youtube_dl
 from googleapiclient.discovery import build
 from discord.ext import commands
 
+TOKEN = os.environ['DISCORD_TOKEN']
+API_KEY = os.environ['API_KEY']
 intents = discord.Intents.default()
 intents.members = True
-TOKEN = os.getenv("DISCORD_TOKEN")
 bot = commands.Bot(command_prefix='!', intents=intents)
 youtube = build('youtube', 'v3', developerKey=API_KEY)
 
@@ -63,7 +65,7 @@ async def leave(ctx):
 
 def play_song(url):
     ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
-    ydl_options = {'format': 'bestaudio/best'}
+    ydl_options = {'--skip-download' '--audio-format': 'mp3', '--audio-quality': '0'}
 
     with youtube_dl.YoutubeDL(ydl_options) as ydl:
         info = ydl.extract_info(url, download=False)
@@ -72,38 +74,36 @@ def play_song(url):
     return source
 
 
-def search_song_id(keyword):
-    request = youtube.search().list(q=keyword, part='snippet', type='video')
+def search_songs(keyword):
+    request = youtube.search().list(
+        part="snippet",
+        q=keyword,
+        fields="items(id,snippet(title))"
+    )
     res = request.execute()
     ids = []
-    for item in res['items']:
-        ids.append(item['id']['videoId'])
-    return ids
-
-
-def search_song_title(keyword):
-    request = youtube.search().list(q=keyword, part='snippet', type='video')
-    res = request.execute()
     titles = []
     for item in res['items']:
+        ids.append(item['id']['videoId'])
         titles.append(item['snippet']['title'])
-    return titles
+    return [ids, titles]
 
 
 @bot.command()
 async def play_link(ctx, url):
-    if ctx.author.voice:
-        channel = ctx.message.author.voice.channel
-        await channel.connect()
     voice = ctx.voice_client
-    voice.stop()
-    source = await play_song(url)
-    voice.play(source)
+    if voice:
+        voice.stop()
+        source = await play_song(url)
+        voice.play(source)
+    else:
+        await ctx.send("Myu-Bot is not connected to the voice channel.")
+        await ctx.send("Use the command: !join")
 
 
 @bot.command()
 async def search(ctx, *, keyword):
-    titles = search_song_title(keyword)
+    ids, titles = search_songs(keyword)
     i = 1
     for title in titles:
         await ctx.send(str(i) + ". " + title)
@@ -111,18 +111,18 @@ async def search(ctx, *, keyword):
 
     @bot.command()
     async def play(ct, song_id):
-        if ctx.author.voice:
-            channel = ctx.message.author.voice.channel
-            await channel.connect()
-        ids = search_song_id(keyword)
-        id_play = ids[int(song_id)]
-        song_id = int(song_id) - 1
-        url = "https://www.youtube.com/watch?v=" + str(id_play)
-        await ct.send("Playing: " + str(titles[int(song_id)]))
-        voice = ctx.voice_client
-        voice.stop()
-        source = await play_song(url)
-        voice.play(source)
+        voice = ct.voice_client
+        if voice:
+            id_play = ids[int(song_id)]
+            song_id = int(song_id) - 1
+            url = "https://www.youtube.com/watch?v=" + str(id_play)
+            voice.stop()
+            source = await play_song(url)
+            voice.play(source)
+            await ct.send("Playing: " + str(titles[int(song_id)]))
+        else:
+            await ct.send("Myu-Bot is not connected to the voice channel.")
+            await ct.send("Use the command: !join")
 
 
 @bot.command()
