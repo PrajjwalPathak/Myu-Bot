@@ -2,8 +2,12 @@ import os
 import discord
 import random as rand
 import youtube_dl
+from discord import Embed
 from googleapiclient.discovery import build
 from discord.ext import commands
+from dotenv import load_dotenv
+load_dotenv()
+
 
 TOKEN = os.environ['DISCORD_TOKEN']
 API_KEY = os.environ['API_KEY']
@@ -50,6 +54,7 @@ async def join(ctx):
     if ctx.author.voice:
         channel = ctx.message.author.voice.channel
         await channel.connect()
+        await ctx.send("Connected to the voice channel.")
     else:
         await ctx.send("You must be in a voice channel to run this command.")
 
@@ -74,7 +79,7 @@ def play_song(url):
     return source
 
 
-global ids, titles
+global ids, titles, song
 
 
 def search_songs(keyword):
@@ -128,8 +133,11 @@ async def play(ctx, song_id):
         url = "https://www.youtube.com/watch?v=" + str(id_play)
         voice.stop()
         source = await play_song(url)
+        global song
+        song = ""
+        song = str(titles[int(song_id)])
         voice.play(source)
-        await ctx.send("Playing: " + str(titles[int(song_id)]))
+        await ctx.send("Playing: " + song)
     else:
         await ctx.send("Myu-Bot is not connected to the voice channel.")
         await ctx.send("Use the command: !join")
@@ -139,21 +147,21 @@ async def play(ctx, song_id):
 async def pause(ctx):
     voice = ctx.voice_client
     voice.pause()
-    await ctx.send("Paused")
+    await ctx.send("Paused Playing: " + song)
 
 
 @bot.command()
 async def resume(ctx):
     voice = ctx.voice_client
     voice.resume()
-    await ctx.send("Resumed")
+    await ctx.send("Resumed Playing: " + song)
 
 
 @bot.command()
 async def stop(ctx):
     voice = ctx.voice_client
     voice.stop()
-    await ctx.send("Stopped")
+    await ctx.send("Stopped the song.")
 
 
 bot.run(TOKEN)
