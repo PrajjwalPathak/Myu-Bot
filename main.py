@@ -81,7 +81,8 @@ def search_songs(keyword):
     request = youtube.search().list(
         part="snippet",
         q=keyword,
-        fields="items(id,snippet(title))"
+        fields="items(id,snippet(title))",
+        type="video"
     )
     res = request.execute()
     global ids
