@@ -74,6 +74,9 @@ def play_song(url):
     return source
 
 
+global ids, titles
+
+
 def search_songs(keyword):
     request = youtube.search().list(
         part="snippet",
@@ -81,6 +84,8 @@ def search_songs(keyword):
         fields="items(id,snippet(title))"
     )
     res = request.execute()
+    global ids
+    global titles
     ids = []
     titles = []
     for item in res['items']:
@@ -103,26 +108,30 @@ async def play_link(ctx, url):
 
 @bot.command()
 async def search(ctx, *, keyword):
+    global ids, titles
     ids, titles = search_songs(keyword)
     i = 1
+    embed = Embed(colour=discord.Color.red())
     for title in titles:
-        await ctx.send(str(i) + ". " + title)
+        embed.add_field(name=str(i), value=title, inline=False)
         i += 1
+    await ctx.send(embed=embed)
 
-    @bot.command()
-    async def play(ct, song_id):
-        voice = ct.voice_client
-        if voice:
-            id_play = ids[int(song_id)]
-            song_id = int(song_id) - 1
-            url = "https://www.youtube.com/watch?v=" + str(id_play)
-            voice.stop()
-            source = await play_song(url)
-            voice.play(source)
-            await ct.send("Playing: " + str(titles[int(song_id)]))
-        else:
-            await ct.send("Myu-Bot is not connected to the voice channel.")
-            await ct.send("Use the command: !join")
+
+@bot.command()
+async def play(ctx, song_id):
+    voice = ctx.voice_client
+    if voice:
+        id_play = ids[int(song_id)]
+        song_id = int(song_id) - 1
+        url = "https://www.youtube.com/watch?v=" + str(id_play)
+        voice.stop()
+        source = await play_song(url)
+        voice.play(source)
+        await ctx.send("Playing: " + str(titles[int(song_id)]))
+    else:
+        await ctx.send("Myu-Bot is not connected to the voice channel.")
+        await ctx.send("Use the command: !join")
 
 
 @bot.command()
