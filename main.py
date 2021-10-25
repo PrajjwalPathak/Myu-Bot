@@ -54,7 +54,7 @@ async def on_member_remove(member):
 async def com(ctx):
     embed = Embed(colour=discord.Color.red())
     embed.add_field(name="!com", value="List all the commands. 📓", inline=False)
-    embed.add_field(name="!hello", value="Myu-Bot introduction. 🕷", inline=False)
+    embed.add_field(name="!hello", value="Myu-Bot introduction. 😃", inline=False)
     embed.add_field(name="!join", value="Myu-Bot joins the voice channel. 🌎", inline=False)
     embed.add_field(name="!leave", value="Myu-Bot leaves the voice channel. ✈", inline=False)
     embed.add_field(name="!play_link", value="Myu-Bot plays the song linked to the url. (!play_link URL) 🎼",
@@ -127,6 +127,7 @@ async def play_link(ctx, url):
         voice.stop()
         source = await play_song(url)
         voice.play(source)
+        await ctx.send("Playing the song. 🎧")
     else:
         await ctx.send("Myu-Bot is not connected to the voice channel. 🏝")
         await ctx.send("Use the command: !join")
