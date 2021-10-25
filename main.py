@@ -6,8 +6,8 @@ from discord import Embed
 from googleapiclient.discovery import build
 from discord.ext import commands
 from dotenv import load_dotenv
-load_dotenv()
 
+load_dotenv()
 
 TOKEN = os.environ['DISCORD_TOKEN']
 API_KEY = os.environ['API_KEY']
@@ -24,7 +24,8 @@ async def on_ready():
 
 @bot.command()
 async def hello(ctx):
-    await ctx.send("Hello, I am a Music Player Bot. You can call me Myu.")
+    await ctx.send("Hello 👋, I am a Music Player Bot. You can call me Myu. 😃")
+    await ctx.send("To see all the commands, use the command: !com")
 
 
 def general_channel():
@@ -37,16 +38,35 @@ def general_channel():
 @bot.event
 async def on_member_join(member):
     i = rand.randint(0, 4)
-    wishes = ["Welcome on board! ", "Welcome! ", "Nice to meet you, ", "Congratulations and welcome, ",
-              "Welcome to the team, "]
+    wishes = ["Welcome on board! 🚀", "Welcome! 😊", "Nice to meet you, 😄", "Congratulations and welcome, 😊",
+              "Welcome to the team, 🍰"]
     channel = general_channel()
-    await channel.send(wishes[i] + str(member))
+    await channel.send(wishes[i] + " " + str(member))
 
 
 @bot.event
 async def on_member_remove(member):
     channel = general_channel()
-    await channel.send(str(member) + " is no longer a member of this server.")
+    await channel.send(str(member) + " is no longer a member of this server. 🛸")
+
+
+@bot.command()
+async def com(ctx):
+    embed = Embed(colour=discord.Color.red())
+    embed.add_field(name="!com", value="List all the commands. 📓", inline=False)
+    embed.add_field(name="!hello", value="Myu-Bot introduction. 🕷", inline=False)
+    embed.add_field(name="!join", value="Myu-Bot joins the voice channel. 🌎", inline=False)
+    embed.add_field(name="!leave", value="Myu-Bot leaves the voice channel. ✈", inline=False)
+    embed.add_field(name="!play_link", value="Myu-Bot plays the song linked to the url. (!play_link URL) 🎼",
+                    inline=False)
+    embed.add_field(name="!search", value="Myu-Bot searches the Youtube database for the songs. (!search QUERY)  🎶",
+                    inline=False)
+    embed.add_field(name="!play", value="Myu-Bot plays the song selected by the user. (!play SONG_NUMBER) 🎵",
+                    inline=False)
+    embed.add_field(name="!pause", value="Myu-Bot pauses the song. ⏸", inline=False)
+    embed.add_field(name="!resume", value="Myu-Bot resumes the song which was paused earlier. ▶", inline=False)
+    embed.add_field(name="!stop", value="Myu-Bot stops the song. ⏹", inline=False)
+    await ctx.send(embed=embed)
 
 
 @bot.command()
@@ -54,18 +74,18 @@ async def join(ctx):
     if ctx.author.voice:
         channel = ctx.message.author.voice.channel
         await channel.connect()
-        await ctx.send("Connected to the voice channel.")
+        await ctx.send("Connected to the voice channel. 🌎")
     else:
-        await ctx.send("You must be in a voice channel to run this command.")
+        await ctx.send("You must be in a voice channel to run this command. 🏜")
 
 
 @bot.command()
 async def leave(ctx):
     if ctx.voice_client:
         await ctx.guild.voice_client.disconnect()
-        await ctx.send("Disconnected from the voice channel.")
+        await ctx.send("Disconnected from the voice channel. ✈")
     else:
-        await ctx.send("I am not connected to a voice channel.")
+        await ctx.send("I am not connected to a voice channel. 🏝")
 
 
 def play_song(url):
@@ -75,7 +95,7 @@ def play_song(url):
     with youtube_dl.YoutubeDL(ydl_options) as ydl:
         info = ydl.extract_info(url, download=False)
         url_play = info['formats'][0]['url']
-        source = discord.FFmpegOpusAudio.from_probe(url_play, **ffmpeg_options)
+        source = discord.FFmpegOpusAudio.from_probe(url_play, **ffmpeg_options, method='fallback')
     return source
 
 
@@ -108,7 +128,7 @@ async def play_link(ctx, url):
         source = await play_song(url)
         voice.play(source)
     else:
-        await ctx.send("Myu-Bot is not connected to the voice channel.")
+        await ctx.send("Myu-Bot is not connected to the voice channel. 🏝")
         await ctx.send("Use the command: !join")
 
 
@@ -137,31 +157,33 @@ async def play(ctx, song_id):
         song = ""
         song = str(titles[int(song_id)])
         voice.play(source)
-        await ctx.send("Playing: " + song)
+        await ctx.send("Playing: " + song + " 🎧")
     else:
-        await ctx.send("Myu-Bot is not connected to the voice channel.")
+        await ctx.send("Myu-Bot is not connected to the voice channel. 🏝")
         await ctx.send("Use the command: !join")
 
 
 @bot.command()
 async def pause(ctx):
+    global song
     voice = ctx.voice_client
     voice.pause()
-    await ctx.send("Paused Playing: " + song)
+    await ctx.send("Paused the song. ⏸")
 
 
 @bot.command()
 async def resume(ctx):
+    global song
     voice = ctx.voice_client
     voice.resume()
-    await ctx.send("Resumed Playing: " + song)
+    await ctx.send("Resumed the song. ▶")
 
 
 @bot.command()
 async def stop(ctx):
     voice = ctx.voice_client
     voice.stop()
-    await ctx.send("Stopped the song.")
+    await ctx.send("Stopped the song. ⏹")
 
 
 bot.run(TOKEN)
