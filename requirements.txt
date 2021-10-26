@@ -3,5 +3,5 @@ pyNaCl
 youtube_dl
 ffmpeg
 ffprobe
-googleapiclient
+google-api-python-client
 dotenv
